@@ -11,6 +11,7 @@ tags:
 ---
 
 
+
 > 之前一直是使用faster rcnn对其中的代码并不是很了解，这次刚好复现mask rcnn就仔细阅读了faster rcnn，主要参考代码是[pytorch-faster-rcnn](https://github.com/ruotianluo/pytorch-faster-rcnn) ，部分参考和借用了以下博客的图片
 [[1]  CNN目标检测（一）：Faster RCNN详解](http://blog.csdn.net/zy1034092330/article/details/62044941)
 
@@ -18,7 +19,6 @@ tags:
 
 
 ## 整体框架 ##
-
 ![整体架构](http://img.blog.csdn.net/20171119155137136?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzAxMDg4OQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
 1. 首先图片进行放缩到W*H，然后送入vgg16(去掉了pool5)，得到feature map(W/16, H/16)
@@ -28,10 +28,10 @@ tags:
 (此处均为大体轮廓，具体细节见后面)
 
 ## 数据层##
-
 1. 主要利用工厂模式适配各种数据集 factory.py中利用lambda表达式(泛函)
 2. 自定义适配自己数据集的类，继承于imdb
 3. 主要针对数据集中生成roidb，对于每个图片保持其中含有的所有的box坐标(0-index)及其类别，然后顺便保存它的面积等参数，最后记录所有图片的index及其根据index获取绝对地址的方法
+
 ``` python
 # factory.py
 from datasets.mydataset import mydataset
@@ -60,7 +60,7 @@ for dataset in ['xxdataset']:
 
 ## RPN ##
 
-###概览###
+### 概览###
 正如整体框架上画的那样，feature map后先跟了一个3\*3的卷积，然后分别用2个1\*1的卷积，预测feature map上每个点对应的9个anchor属于前背景的概率(9*2)和4个回归的坐标(9*4)
 ``` python
 # rpn
@@ -73,6 +73,7 @@ rpn = F.relu(self.rpn_net(net_conv))
 rpn_cls_score = self.rpn_cls_score_net(rpn) # batch * (num_anchors * 2) * h * w
 rpn_bbox_pred = self.rpn_bbox_pred_net(rpn) # batch * (num_anchors * 4) * h * w
 ```
+
 ### anchor target###
 对上一步产生的anchor分配target label，前景or背景，以便训练rpn
 
@@ -88,6 +89,7 @@ rpn_bbox_pred = self.rpn_bbox_pred_net(rpn) # batch * (num_anchors * 4) * h * w
 3. 对剩下的proposal进行NMS处理，阈值是0.7
 4. 对于剩下的proposal，只留下RPN\_POST\_NMS\_TOP\_N，训练是2000，测试是300
 最终剩下的proposal即为rois了
+
 ### proposal target ###
 对留下的proposal(train:2000, test没有这个阶段，因为测试不知道gt无法分配)分配target label，属于具体哪一个类别，以便训练后面的分类器, 下面以train阶段的某个图片为例即该张图片有3000个proposal，gt中含有15个类别的box(不含背景) (全库有20个类别)
 
@@ -110,11 +112,13 @@ if fg_inds.numel() > 0 and bg_inds.numel() > 0:
 #  主要解读npr.choice(np.arange(0, fg_inds.numel()), size=int(fg_rois_per_image), replace=False)
 #  在np.arange(0, fg_inds.numel())随机取int(fg_rois_per_image)个数，replace=False不允许重复
 ```
+
 ## roi pooling ##
 上一步得到了很多大小不一的roi，对应到feature map上也是大小不一的，但是fc是需要fixed size的，于是根据[SPPNet论文笔记和caffe实现说明](http://blog.csdn.net/u013010889/article/details/53928363)，出来了roi pooling(spp poolingfroze 前面的卷积只更新后面的fc，why见fast rcnn的2.3段解释的)
 我主要参考了这篇博客[Region of interest pooling explained](https://blog.deepsense.ai/region-of-interest-pooling-explained/)，但是我感觉它的示意图是有问题的，应该有overlap的
 
-   1. 我们首先根据roi的位置映射到原图，然后根据feature map和原图的比例，得到roi部分的feature(蓝色框为实际位置，浮点坐标(1.2,0.8)(7.2,9.7)，四舍五入量化到红色框(1,1)(7,10))
+
+**1. ** 我们首先根据roi的位置映射到原图，然后根据feature map和原图的比例，得到roi部分的feature(蓝色框为实际位置，浮点坐标(1.2,0.8)(7.2,9.7)，四舍五入量化到红色框(1,1)(7,10))
 
 ```c++
 int roi_start_w = round(rois_flat[index_roi + 1] * spatial_scale);  // spatial_scale 1/16
@@ -122,10 +126,9 @@ int roi_start_h = round(rois_flat[index_roi + 2] * spatial_scale);
 int roi_end_w = round(rois_flat[index_roi + 3] * spatial_scale);
 int roi_end_h = round(rois_flat[index_roi + 4] * spatial_scale);
 ```
-
 ![这里写图片描述](http://img.blog.csdn.net/20171122221404250?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzAxMDg4OQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
-   2. 对红色红色框进行roipooling
+**2. **对红色红色框进行roipooling
 
 ```c++
 float bin_size_h = (float)(roi_height) / (float)(pooled_height);  // 9/7
@@ -148,12 +151,9 @@ for (ph = 0; ph < pooled_height; ++ph){
 //  刚好把所有roi对应的feature map覆盖完，hend同理
 //  roi_height roi_width小于pooled_height pooled_width时overlap就多一点呗
 ```
-
 ![这里写图片描述](http://img.blog.csdn.net/20171122221632024?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzAxMDg4OQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
-   3. 对每个划分的pool bin进行max或者average pooling最后得到7*7的feature map
-
-
+**3. **对每个划分的pool bin进行max或者average pooling最后得到7*7的feature map
 
 ## 分类和回归##
 roi pooling后就得到fixed size的feature map(7\*7)，然后送入cls\_score\_net得到分类，送入bbox\_pred\_net粗暴的坐标回归和rpn时一样
@@ -161,6 +161,7 @@ roi pooling后就得到fixed size的feature map(7\*7)，然后送入cls\_score\_
 self.cls_score_net = nn.Linear(self._fc7_channels, self._num_classes)
 self.bbox_pred_net = nn.Linear(self._fc7_channels, self._num_classes * 4)
 ```
+
 ## test##
 继续假设全部类别数是20种
 1. 图片送入网络后前传，没有给anchor proposal指定gt的部分(忽略\_anchor\_target\_layer \_proposal\_target\_layer)
@@ -169,6 +170,7 @@ self.bbox_pred_net = nn.Linear(self._fc7_channels, self._num_classes * 4)
 3. 对每一类，取300个roi>thresh(默认为0.)，然后进行nms获得留下的box
 4. 然后对20类留下的所有box，按概率排序，留下设定的max\_per\_image个box
 **有个不解就是为什么对于每个roi，不是选择其置信度最大的类别，而可以对应到20种类别，可能是map算法，同等置信度下，多一些box得分会高一些**
+
 ```
 for j in range(1, imdb.num_classes):
  inds = np.where(scores[:, j] > thresh)[0]
@@ -180,6 +182,7 @@ for j in range(1, imdb.num_classes):
  cls_dets = cls_dets[keep, :]
  all_boxes[j][i] = cls_dets
 ```
+
 ## 延伸##
 验证一下nms在训练时是不是必须的
 参考[An Implementation of Faster RCNN with Study for Region Sampling](https://arxiv.org/abs/1702.02138)

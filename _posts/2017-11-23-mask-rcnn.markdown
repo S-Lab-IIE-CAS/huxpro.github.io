@@ -27,7 +27,8 @@ tags:
  3. RoIWarp，第一次量化了，第二次没有，RoIAlign两次都没有量化
 ![这里写图片描述](http://img.blog.csdn.net/20171120235429391?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzAxMDg4OQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
-###解决方案###
+### 解决方案###
+
 和上一讲faster rcnn举的例子一样，输出7\*7
 
  1. 划分7\*7的bin(我们可以直接精确的映射到feature map来划分bin，不用第一次量化)
@@ -55,7 +56,7 @@ pooled.append(tf.image.crop_and_resize(
 
 利用分类的结果，在mask之路，只取对应类别的channel然后做sigmoid，减少类间竞争，避免出现一些洞之类(个人理解)
 
-##FPN##
+## FPN##
 
 
 **未完待续**
