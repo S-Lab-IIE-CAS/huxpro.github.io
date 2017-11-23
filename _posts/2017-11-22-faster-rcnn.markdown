@@ -2,9 +2,9 @@
 layout:     post
 title:      "Faster rcnn解读"
 subtitle:   " \"持续更新中\""
-date:       2017-11-22 23:00:00
+date:       2017-11-22 12:00:00+0800
 author:     "Sundrops"
-header-img: "img/post-bg-2015.jpg"
+header-img: "img/home-bg-faye.png"
 catalog: true
 tags:
     - detection
