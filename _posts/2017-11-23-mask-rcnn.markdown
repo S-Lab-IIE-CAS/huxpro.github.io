@@ -10,41 +10,37 @@ tags:
     - detection
 ---
 
-
-
->上一篇中介绍[faster rcnn](http://blog.csdn.net/u013010889/article/details/78574879)，这次mask 基本在上次的基础上加了点代码，参考和引用[mask rcnn slides](https://lmb.informatik.uni-freiburg.de/lectures/seminar_brox/seminar_ss17/maskrcnn_slides.pdf)
-> [kaiming he maskrcnn](http://kaiminghe.com/iccv17tutorial/maskrcnn_iccv2017_tutorial_kaiminghe.pdf)
-> [Ardian Umam mask rcnn](https://www.youtube.com/watch?v=cSO1nUj495Y)
+>上一篇中介绍[faster rcnn](http://blog.csdn.net/u013010889/article/details/78574879)，这次mask 基本在上次的基础上加了点代码，参考和引用[1. mask rcnn slides](https://lmb.informatik.uni-freiburg.de/lectures/seminar_brox/seminar_ss17/maskrcnn_slides.pdf)  [2. kaiming he maskrcnn](http://kaiminghe.com/iccv17tutorial/maskrcnn_iccv2017_tutorial_kaiminghe.pdf)  [3. Ardian Umam mask rcnn](https://www.youtube.com/watch?v=cSO1nUj495Y)，欢迎fork简版[mask rcnn](https://github.com/Sundrops/pytorch-faster-rcnn)
 ## 整体框架##
 ![这里写图片描述](http://img.blog.csdn.net/20171120235339867?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzAxMDg4OQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
 ## RoIAlign##
 
 ### 问题###
-首先做segment是pixel级别的，但是faster rcnn中roi pooling有2次量化操作导致了没有对齐
+	1.做segment是pixel级别的，但是faster rcnn中roi pooling有2次量化操作导致了没有对齐
 ![这里写图片描述](http://img.blog.csdn.net/20171120235711929?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzAxMDg4OQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
-两次量化，第一次roi映射feature时，第二次roi pooling时
+	2.两次量化，第一次roi映射feature时，第二次roi pooling时(这个图参考了youtube的视频，但是感觉第二次量化它画错了，根据上一讲ross的源码，不是缩小了，而是部分bin大小和步长发生变化)
+
 ![这里写图片描述](http://img.blog.csdn.net/20171120235415084?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzAxMDg4OQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
-RoIWarp，第一次量化了，第二次没有，RoIAlign两次都没有量化
+	3. RoIWarp，第一次量化了，第二次没有，RoIAlign两次都没有量化
 ![这里写图片描述](http://img.blog.csdn.net/20171120235429391?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzAxMDg4OQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
 ###解决方案###
-和上一讲faster rcnn举的例子一样，输出2\*2
+和上一讲faster rcnn举的例子一样，输出7\*7
 
- 1. 划分2\*2的bin(其实那个roi对应的不一定是整数(0,3),(7,8)，这就是上文说的第一次量化，我们可以直接精确的映射到feature map来划分bin )
- ![这里写图片描述](http://img.blog.csdn.net/20171121000132888?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzAxMDg4OQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+	 1. 划分7\*7的bin(我们可以直接精确的映射到feature map来划分bin，不用第一次量化)
+![这里写图片描述](http://img.blog.csdn.net/20171123164905562?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzAxMDg4OQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
-2. 每个bin中采样4个点，双线性插值
- ![这里写图片描述](http://img.blog.csdn.net/20171121000231506?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzAxMDg4OQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
-![这里写图片描述](http://img.blog.csdn.net/20171121000340747?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzAxMDg4OQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+	2. 每个bin中采样4个点，双线性插值
+ ![这里写图片描述](http://img.blog.csdn.net/20171123164915416?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzAxMDg4OQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
-3. 做max或average pool
-![这里写图片描述](http://img.blog.csdn.net/20171121000317112?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzAxMDg4OQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+	3. 对每个bin4个点做max或average pool
 
 ```python
 # pytorch
+# 这是pytorch做法先采样到14*14，然后max pooling到7*7
 pre_pool_size = cfg.POOLING_SIZE * 2
 grid = F.affine_grid(theta, torch.Size((rois.size(0), 1, pre_pool_size, pre_pool_size)))
 crops = F.grid_sample(bottom.expand(rois.size(0), bottom.size(1), bottom.size(2), bottom.size(3)), grid, mode=mode)
