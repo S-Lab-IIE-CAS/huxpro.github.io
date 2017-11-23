@@ -11,6 +11,7 @@ tags:
 ---
 
 >上一篇中介绍[faster rcnn](http://blog.csdn.net/u013010889/article/details/78574879)，这次mask 基本在上次的基础上加了点代码，参考和引用[1. mask rcnn slides](https://lmb.informatik.uni-freiburg.de/lectures/seminar_brox/seminar_ss17/maskrcnn_slides.pdf)  [2. kaiming he maskrcnn](http://kaiminghe.com/iccv17tutorial/maskrcnn_iccv2017_tutorial_kaiminghe.pdf)  [3. Ardian Umam mask rcnn](https://www.youtube.com/watch?v=cSO1nUj495Y)，欢迎fork简版[mask rcnn](https://github.com/Sundrops/pytorch-faster-rcnn)
+
 ## 整体框架##
 ![这里写图片描述](http://img.blog.csdn.net/20171120235339867?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzAxMDg4OQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
@@ -27,8 +28,7 @@ tags:
  3. RoIWarp，第一次量化了，第二次没有，RoIAlign两次都没有量化
 ![这里写图片描述](http://img.blog.csdn.net/20171120235429391?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzAxMDg4OQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
-### 解决方案###
-
+### 解决方案 ###
 和上一讲faster rcnn举的例子一样，输出7\*7
 
  1. 划分7\*7的bin(我们可以直接精确的映射到feature map来划分bin，不用第一次量化)

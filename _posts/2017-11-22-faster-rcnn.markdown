@@ -118,7 +118,7 @@ if fg_inds.numel() > 0 and bg_inds.numel() > 0:
 我主要参考了这篇博客[Region of interest pooling explained](https://blog.deepsense.ai/region-of-interest-pooling-explained/)，但是我感觉它的示意图是有问题的，应该有overlap的
 
 
-**1. ** 我们首先根据roi的位置映射到原图，然后根据feature map和原图的比例，得到roi部分的feature(蓝色框为实际位置，浮点坐标(1.2,0.8)(7.2,9.7)，四舍五入量化到红色框(1,1)(7,10))
+**1.** 我们首先根据roi的位置映射到原图，然后根据feature map和原图的比例，得到roi部分的feature(蓝色框为实际位置，浮点坐标(1.2,0.8)(7.2,9.7)，四舍五入量化到红色框(1,1)(7,10))
 
 ```c++
 int roi_start_w = round(rois_flat[index_roi + 1] * spatial_scale);  // spatial_scale 1/16
@@ -128,7 +128,7 @@ int roi_end_h = round(rois_flat[index_roi + 4] * spatial_scale);
 ```
 ![这里写图片描述](http://img.blog.csdn.net/20171122221404250?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzAxMDg4OQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
-**2. **对红色红色框进行roipooling
+**2.** 对红色红色框进行roipooling
 
 ```c++
 float bin_size_h = (float)(roi_height) / (float)(pooled_height);  // 9/7
@@ -150,10 +150,12 @@ for (ph = 0; ph < pooled_height; ++ph){
 //  =(pooled_width)))=ceil(roi_width)=roi_width
 //  刚好把所有roi对应的feature map覆盖完，hend同理
 //  roi_height roi_width小于pooled_height pooled_width时overlap就多一点呗
+}}
 ```
+
 ![这里写图片描述](http://img.blog.csdn.net/20171122221632024?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzAxMDg4OQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
-**3. **对每个划分的pool bin进行max或者average pooling最后得到7*7的feature map
+**3.** 对每个划分的pool bin进行max或者average pooling最后得到7*7的feature map
 
 ## 分类和回归##
 roi pooling后就得到fixed size的feature map(7\*7)，然后送入cls\_score\_net得到分类，送入bbox\_pred\_net粗暴的坐标回归和rpn时一样
