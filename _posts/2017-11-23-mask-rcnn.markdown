@@ -17,26 +17,26 @@ tags:
 ## RoIAlign##
 
 ### 问题###
-	1.做segment是pixel级别的，但是faster rcnn中roi pooling有2次量化操作导致了没有对齐
+
+ 1. 做segment是pixel级别的，但是faster rcnn中roi pooling有2次量化操作导致了没有对齐
 ![这里写图片描述](http://img.blog.csdn.net/20171120235711929?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzAxMDg4OQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
-	2.两次量化，第一次roi映射feature时，第二次roi pooling时(这个图参考了youtube的视频，但是感觉第二次量化它画错了，根据上一讲ross的源码，不是缩小了，而是部分bin大小和步长发生变化)
-
+ 2. 两次量化，第一次roi映射feature时，第二次roi pooling时(这个图参考了youtube的视频，但是感觉第二次量化它画错了，根据上一讲ross的源码，不是缩小了，而是部分bin大小和步长发生变化)
 ![这里写图片描述](http://img.blog.csdn.net/20171120235415084?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzAxMDg4OQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
-	3. RoIWarp，第一次量化了，第二次没有，RoIAlign两次都没有量化
+ 3. RoIWarp，第一次量化了，第二次没有，RoIAlign两次都没有量化
 ![这里写图片描述](http://img.blog.csdn.net/20171120235429391?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzAxMDg4OQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
 ###解决方案###
 和上一讲faster rcnn举的例子一样，输出7\*7
 
-	 1. 划分7\*7的bin(我们可以直接精确的映射到feature map来划分bin，不用第一次量化)
+ 1. 划分7\*7的bin(我们可以直接精确的映射到feature map来划分bin，不用第一次量化)
 ![这里写图片描述](http://img.blog.csdn.net/20171123164905562?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzAxMDg4OQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
-	2. 每个bin中采样4个点，双线性插值
+ 2. 每个bin中采样4个点，双线性插值
  ![这里写图片描述](http://img.blog.csdn.net/20171123164915416?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzAxMDg4OQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
-	3. 对每个bin4个点做max或average pool
+ 3. 对每个bin4个点做max或average pool
 
 ```python
 # pytorch
