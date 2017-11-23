@@ -7,7 +7,7 @@ author:     "Sundrops"
 header-img: "img/home-bg-faye.png"
 catalog: true
 tags:
-    - detection2
+    - detection
 ---
 
 
