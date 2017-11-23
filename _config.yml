@@ -48,7 +48,7 @@ kramdown:
 
 
 # Disqus settings
-disqus_username: hux
+disqus_username: sundrops-1
 
 # Netease setttings
 netease_comment: false
@@ -67,7 +67,7 @@ ba_track_id: d66e5a6de4a5d97725cd16a110681ff8
 
 # Sidebar settings
 sidebar: true                           # whether or not using Sidebar.
-sidebar-about-description: "coding reading"
+sidebar-about-description: "coding and reading"
 sidebar-avatar: /img/avatar-rgh.jpg      # use absolute URL, seeing it's used in both `/` and `/about/`
 
 
