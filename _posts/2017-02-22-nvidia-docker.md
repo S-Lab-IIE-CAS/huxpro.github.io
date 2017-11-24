@@ -1,6 +1,6 @@
 ---
 layout:     post
-title:      "nvidia-docker快速迁移caffe环境"
+title:      "使用nvidia-docker快速迁移caffe环境"
 subtitle:   " \"GPU+VNCserver+lxde桌面\""
 date:       2017-02-22 12:00:00+0800
 author:     "Sundrops"
