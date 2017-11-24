@@ -13,9 +13,9 @@ tags:
 之前一直看Ng的课程，以为掌握了，结果自己动手实现发现问题很多。
 > **多元线性回归**
 $向量形式：Y=W*X$
-$展开：y = w_0*x_0+w_1*x_1+...+w_n*x_n$
-$参数:W: w_0,w_1,...w_n$
-$代价函数：J(w_0,w_1,...w_n) = \frac{1}{2m}\sum_{i=0}^m(w_i*x_i-y_i)$
+$$展开：y = w_0*x_0+w_1*x_1+...+w_n*x_n$$
+$$参数:W: w_0,w_1,...w_n$$
+$$代价函数：J(w_0,w_1,...w_n) = \frac{1}{2m}\sum_{i=0}^m(w_i*x_i-y_i)$$
 
 ``` python
 # 批量创造一些数据
@@ -36,8 +36,8 @@ def loadDataSet(data_num,weight_num):
 ```
 ##  1. 批梯度下降 ##
 > 优化的代价函数是关于所有数据样本的loss，计算整个样本的loss后才更新权值，推导参考我的博客[梯度下降法](http://blog.csdn.net/u013010889/article/details/61658311)
-> $参数更新向量形式：W=W-\frac{1}{m}*(X^T(W*X-Y) * lr$
-$展开：w_j = w_j - \frac{1}{m}\sum_{i=0}^m(w_i*x_i-y_i)*x_i*lr$
+> $$参数更新向量形式：W=W-\frac{1}{m}*(X^T(W*X-Y) * lr$$
+$$展开：w_j = w_j - \frac{1}{m}\sum_{i=0}^m(w_i*x_i-y_i)*x_i*lr$$
 **m**是所有样本的数量和
 
 ``` python
@@ -60,8 +60,8 @@ def bgd(x,init_w,y,iter_size,lr):
 ```
 ##  2. 随机梯度下降 ##
 >优化的代价函数是单个数据样本的loss，计算每个样本的loss后就立即更新权值
- $参数更新向量形式：W=W-\frac{1}{m}*(X^T(W*X-Y) * lr$
-$展开：w_j = w_j - \frac{1}{m}\sum_{i=0}^m(w_i*x_i-y_i)*x_i*lr$
+ $$参数更新向量形式：W=W-\frac{1}{m}*(X^T(W*X-Y) * lr$$
+$$展开：w_j = w_j - \frac{1}{m}\sum_{i=0}^m(w_i*x_i-y_i)*x_i*lr$$
 **只是：m=1**
 
 ``` python
@@ -87,8 +87,8 @@ def sgd(x, y, init_w, iter_size, lr):
 ```
 ##  3. 小批量随机梯度下降 ##
 >优化的代价函数是每块(batch_size)数据样本的loss，计算每快样本的loss后就更新权值
- $参数更新向量形式：W=W-\frac{1}{m}*(X^T(W*X-Y) * lr$
-$展开：w_j = w_j - \frac{1}{m}\sum_{i=0}^m(w_i*x_i-y_i)*x_i*lr$
+ $$参数更新向量形式：W=W-\frac{1}{m}*(X^T(W*X-Y) * lr$$
+$$展开：w_j = w_j - \frac{1}{m}\sum_{i=0}^m(w_i*x_i-y_i)*x_i*lr$$
 **只是：m=batch_size**
 
 ``` python
