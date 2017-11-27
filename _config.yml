@@ -88,6 +88,10 @@ service-worker: true
 # Friends
 friends: [
     {
+            title: "本博客源代码",
+            href: "https://github.com/rgh5/rgh5.github.io"
+    },
+    {
         title: "我的csdn博客",
         href: "http://blog.csdn.net/u013010889"
     }

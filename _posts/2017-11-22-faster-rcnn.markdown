@@ -120,8 +120,10 @@ if fg_inds.numel() > 0 and bg_inds.numel() > 0:
 
 **1.** 我们首先根据roi的位置映射到原图，然后根据feature map和原图的比例，得到roi部分的feature(蓝色框为实际位置，浮点坐标(1.2,0.8)(7.2,9.7)，四舍五入量化到红色框(1,1)(7,10))
 
-```c++
-int roi_start_w = round(rois_flat[index_roi + 1] * spatial_scale);  // spatial_scale 1/16
+```cpp
+// spatial_scale 1/16
+
+int roi_start_w = round(rois_flat[index_roi + 1] * spatial_scale);
 int roi_start_h = round(rois_flat[index_roi + 2] * spatial_scale);
 int roi_end_w = round(rois_flat[index_roi + 3] * spatial_scale);
 int roi_end_h = round(rois_flat[index_roi + 4] * spatial_scale);
@@ -130,9 +132,11 @@ int roi_end_h = round(rois_flat[index_roi + 4] * spatial_scale);
 
 **2.** 对红色红色框进行roipooling
 
-```c++
+```cpp
 float bin_size_h = (float)(roi_height) / (float)(pooled_height);  // 9/7
+
 float bin_size_w = (float)(roi_width) / (float)(pooled_width);  // 7/7=1
+
 for (ph = 0; ph < pooled_height; ++ph){
  for (pw = 0; pw < pooled_width; ++pw){
    int hstart = (floor((float)(ph) * bin_size_h));  
@@ -144,12 +148,19 @@ for (ph = 0; ph < pooled_height; ++ph){
    wstart = fminf(fmaxf(wstart + roi_start_w, 0), data_width);
    wend = fminf(fmaxf(wend + roi_start_w, 0), data_width);
 // ......
+
 // 经过计算后w步长为1，窗口为1，没有overlap，h窗口步长不定都有overlap，注意在ph=3时窗口为3了
+
 // 注意边界 pw=pooled_width-1时 wend=(ceil((float)(pw + 1) * bin_size_w))
+
 //  =(ceil((float)pooled_width * (float)(roi_width) / (float)
+
 //  =(pooled_width)))=ceil(roi_width)=roi_width
+
 //  刚好把所有roi对应的feature map覆盖完，hend同理
+
 //  roi_height roi_width小于pooled_height pooled_width时overlap就多一点呗
+
 }}
 ```
 
@@ -173,7 +184,7 @@ self.bbox_pred_net = nn.Linear(self._fc7_channels, self._num_classes * 4)
 4. 然后对20类留下的所有box，按概率排序，留下设定的max\_per\_image个box
 **有个不解就是为什么对于每个roi，不是选择其置信度最大的类别，而可以对应到20种类别，可能是map算法，同等置信度下，多一些box得分会高一些**
 
-```
+```python
 for j in range(1, imdb.num_classes):
  inds = np.where(scores[:, j] > thresh)[0]
  cls_scores = scores[inds, j]
