@@ -1,7 +1,7 @@
 ---
 layout:     post
-title:      "Softmax层原理详解"
-subtitle:   " \"公式+代码\""
+title:      "CapsuleNet解读"
+subtitle:   " \"Dynamic Routing Between Capsules\""
 date:       2017-12-05 12:00:00+0800
 author:     "Sundrops"
 header-img: "img/home-bg-faye.png"
