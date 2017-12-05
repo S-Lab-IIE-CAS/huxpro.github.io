@@ -2,7 +2,7 @@
 layout:     post
 title:      "Softmax层原理详解"
 subtitle:   " \"公式+代码\""
-date:       2017-07-29 12:00:00+0800
+date:       2017-12-05 12:00:00+0800
 author:     "Sundrops"
 header-img: "img/home-bg-faye.png"
 catalog: true
