@@ -34,8 +34,8 @@ tags:
  1. 划分7\*7的bin(我们可以直接精确的映射到feature map来划分bin，不用第一次量化)
 ![这里写图片描述](http://img.blog.csdn.net/20171123164905562?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzAxMDg4OQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
- 2. 每个bin中采样4个点，双线性插值
- ![这里写图片描述](http://img.blog.csdn.net/20171123164915416?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzAxMDg4OQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+2. 每个bin中采样4个点，双线性插值
+![这里写图片描述](http://img.blog.csdn.net/20171127114047379?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzAxMDg4OQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
  3. 对每个bin4个点做max或average pool
 
@@ -58,5 +58,15 @@ pooled.append(tf.image.crop_and_resize(
 
 ## FPN##
 
+详见我的另一篇博客[FPN解读](http://blog.csdn.net/u013010889/article/details/78658135)
 
-**未完待续**
+
+## 更多 ##
+
+前面我们介绍RoI Align是在每个bin中采样4个点，双线性插值，但也是一定程度上解读了mismatch问题，而旷视科技PLACES instance segmentation比赛中所用的是更精确的解决这个问题，对于每个bin，RoIAlign只用了4个值求平均，而旷视则直接利用积分(把bin中所有位置都插值出来)求和出这一块的像素值和然后求平均，这样更精确了但是很费时。
+
+![这里写图片描述](http://img.blog.csdn.net/20171218222848968?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzAxMDg4OQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+
+![这里写图片描述](http://img.blog.csdn.net/20171218222856408?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzAxMDg4OQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+
+来源旷视科技peng chao分享的[video](https://v.douyu.com/show/zBjq4Mepw4Q75Ea8)和[slides](https://pan.baidu.com/s/1boWth2R)
