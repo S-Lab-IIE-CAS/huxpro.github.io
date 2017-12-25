@@ -69,3 +69,30 @@ region-free的方法如YOLO，SSD，速度是很快，但是总体来说精度�
 ![这里写图片描述](http://img.blog.csdn.net/20171127204404354?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzAxMDg4OQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
 下一步是不是要精度达到region-based，速度达到region-free呢，期待中(实力暂时不够，只能期待了)
+
+## 部分代码 ##
+```python
+# light head
+# large kernel
+conv_new_1 = mx.sym.Convolution(data=relu1, kernel=(15, 1), pad=(7, 0), num_filter=256, name="conv_new_1", lr_mult=3.0)
+relu_new_1 = mx.sym.Activation(data=conv_new_1, act_type='relu', name='relu1')
+conv_new_2 = mx.sym.Convolution(data=relu_new_1, kernel=(1, 15), pad=(0, 7), num_filter=10*7*7, name="conv_new_2", lr_mult=3.0)
+relu_new_2 = mx.sym.Activation(data=conv_new_2, act_type='relu', name='relu2')
+conv_new_3 = mx.sym.Convolution(data=relu1, kernel=(1, 15), pad=(0, 7), num_filter=256, name="conv_new_3", lr_mult=3.0)
+relu_new_3 = mx.sym.Activation(data=conv_new_3, act_type='relu', name='relu3')
+conv_new_4 = mx.sym.Convolution(data=relu_new_3, kernel=(15, 1), pad=(7, 0), num_filter=10*7*7, name="conv_new_4", lr_mult=3.0)
+relu_new_4 = mx.sym.Activation(data=conv_new_4, act_type='relu', name='relu4')
+light_head = mx.symbol.broadcast_add(name='light_head', *[relu_new_2, relu_new_4])
+# PSROIPooling
+roi_pool = mx.contrib.sym.PSROIPooling(name='roi_pool', data=light_head, rois=rois, group_size=7, pooled_size=7, output_dim=10, spatial_scale=0.0625)
+# 隐层fc
+fc_new_1 = mx.symbol.FullyConnected(name='fc_new_1', data=roi_pool, num_hidden=2048)
+fc_new_1_relu = mx.sym.Activation(data=fc_new_1, act_type='relu', name='fc_new_1_relu')
+# 分类和回归
+cls_score = mx.symbol.FullyConnected(name='cls_score', data=fc_new_1_relu, num_hidden=num_classes)
+bbox_pred = mx.symbol.FullyConnected(name='bbox_pred', data=fc_new_1_relu, num_hidden=num_reg_classes * 4)
+```
+
+----------
+参考:
+[terrychenism/Deformable-ConvNets](https://github.com/terrychenism/Deformable-ConvNets/blob/master/rfcn/symbols/resnet_v1_101_rfcn_light.py#L784)
