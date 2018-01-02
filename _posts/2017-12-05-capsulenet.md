@@ -95,9 +95,13 @@ max pooling是cnn用来保持Invariance的，比如一个物体轻微移动或�
 3. 更新bij，bij=bij+u和v的点积(点积检测胶囊的输入和输出之间的相似性)
 4. 继续迭代直到达到迭代次数
 
-随着迭代的持续，输入的某个胶囊如果和输出胶囊vj不相似，它的权重cij会越来越小，而相似的话，权重越来越大。对应论文的:
+**特别注意softmax这个公式，分母是bik，是在j上求和而不是i，上一层的一个胶囊输出到下一层所有胶囊的概率和为1。**
+随着迭代的持续，上一层某个胶囊i和输出的下一层所有胶囊进行比较，如果和某个胶囊vj不相似，它的权重cij会越来越小，而相似的话，权重越来越大，这个胶囊就只贡献于它认定的下一层某个胶囊了。对应论文的:
 
 > Using an iterative routing process, each active capsule will **choose a capsule in the layer above to be its parent** in the tree. For the higher levels of a visual system, this iterative process will be solving the problem of assigning parts to wholes.
+
+![这里写图片描述](http://img.blog.csdn.net/20180102113103526?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzAxMDg4OQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+
 
 ## CapsuleNet结构 ##
 
