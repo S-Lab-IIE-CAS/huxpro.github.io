@@ -9,7 +9,6 @@ catalog: true
 tags:
     - detection
 ---
-
 > 现在做detection的竞争相当激烈，能记住的就是ross kaiming团队和sunjian老师团队，还有今天的主角daijifeng老师团队了[arxiv link](https://arxiv.org/abs/1711.11575)
 
 ## Motivation ##
@@ -23,11 +22,24 @@ tags:
 2. 去重(之前都用NMS来做)
 
 ![这里写图片描述](http://img.blog.csdn.net/20180309125149336?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzAxMDg4OQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)
+## Attention Model##
 
+关系模块的提出主要受启发于google的《Attention is all you need中Scaled Dot-Product Attention机制，我们先介绍一下Attention Model(AM， 注意力模型)，这里以NLP中利用注意力模型为例。
+
+普通的NLP翻译模型(分心模型)：在生成目标句子的单词时，不论生成哪个单词，是y1,y2也好，还是y3也好，他们使用的句子X的语义编码C都是一样的，没有任何区别。而语义编码C是由句子X的每个单词经过Encoder 编码产生的，这意味着不论是生成哪个单词，y1,y2还是y3，其实句子X中任意单词对生成某个目标单词yi来说影响力都是相同的，没有任何区别
+
+比如输入的是英文句子：Tom chase Jerry，Encoder-Decoder框架逐步生成中文单词：“汤姆”，“追逐”，“杰瑞”。在翻译“杰瑞”这个中文单词的时候，分心模型里面的每个英文单词对于翻译目标单词“杰瑞”贡献是相同的，很明显这里不太合理，显然“Jerry”对于翻译成“杰瑞”更重要，但是分心模型是无法体现这一点的，这就是为何说它没有引入注意力的原因。
+
+![这里写图片描述](//img-blog.csdn.net/20180314154939551?watermark/2/text/Ly9ibG9nLmNzZG4ubmV0L3UwMTMwMTA4ODk=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)
+
+而加入注意力模型后，每个y的生成使用的语义编码C都不同，由于注意力不同所以它对每个目标单词y的影响不同。
+如果要生成yi单词，在时刻i我们是可以知道在生成Yi之前的隐层节点i时刻的输出值Hi的(要送入下一个cell生成yi)，用i时刻的隐层节点状态Hi去和输入句子中每个单词对应的RNN隐层节点状态hj进行对比，而我们的目的是要计算生成Yi时的输入句子单词“Tom”、“Chase”、“Jerry”对Yi来说的注意力分配概率分布。
+
+![这里写图片描述](//img-blog.csdn.net/20180314155411964?watermark/2/text/Ly9ibG9nLmNzZG4ubmV0L3UwMTMwMTA4ODk=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)
+![这里写图片描述](//img-blog.csdn.net/20180314155437407?watermark/2/text/Ly9ibG9nLmNzZG4ubmV0L3UwMTMwMTA4ODk=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)
 ## Object Relation Module ##
 
-关系模块的提出主要受启发于google的《Attention is all you need中Scaled Dot-Product Attention机制：
-q是查询query，K是key的各个分量，V是value的各个分量。括号内代表当前查询q与key的相似度，用点乘(除以维度dk的开方)表示。softmax后得到该查询对应的各个value分量的权重，然后乘以V得到最后的输出value
+上文我们也介绍了注意力模型，本文就打算利用AM中的公式，首先通过softmax计算在各个key上的注意力分配概率分布，然后再与原有的V相乘-->聚焦，即V代表整个图片的信息(视觉特征和几何特征)，softmax中计算注意力在各个物体的分配概率(即各个物体与当前物体的关联度，得到各个物体对当前物体的影响)
 
 ![这里写图片描述](http://img.blog.csdn.net/20180309125637101?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzAxMDg4OQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)
 $f_R(n)$代表整个物体集合于第n个物体的关系，$w^{mn}$代表第m个物体对当前第n个物体的影响
@@ -69,3 +81,8 @@ ${w_G}^{mn}$类似于ReLU操作，首先需要乘以进行$\varepsilon_G$进行�
 
 
 ![这里写图片描述](http://img.blog.csdn.net/2018030914560454?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzAxMDg4OQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)
+
+
+----------
+引用:
+[自然语言处理中的Attention Model：是什么及为什么](http://blog.csdn.net/malefactor/article/details/50550211)
