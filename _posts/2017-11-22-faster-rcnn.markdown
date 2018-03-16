@@ -157,7 +157,7 @@ if fg_inds.numel() > 0 and bg_inds.numel() > 0:
 我主要参考了这篇博客[Region of interest pooling explained](https://blog.deepsense.ai/region-of-interest-pooling-explained/)，但是我感觉它的示意图是有问题的，应该有overlap的
 	
 
-**1. ** 我们首先根据roi的位置映射到原图，然后根据feature map和原图的比例，得到roi部分的feature(蓝色框为实际位置，浮点坐标(1.2,0.8)(7.2,9.7)，四舍五入量化到红色框(1,1)(7,10))
+**1. ** 我们首先根据feature map和原图的比例，把roi在原图上的坐标映射到feature map上， 然后扣出roi对应部分的feature(蓝色框为实际位置，浮点坐标(1.2,0.8)(7.2,9.7)，四舍五入量化到红色框(1,1)(7,10))
 
 ```c++
 int roi_start_w = round(rois_flat[index_roi + 1] * spatial_scale);  // spatial_scale 1/16
