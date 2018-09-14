@@ -1,7 +1,7 @@
 ---
 layout:     post
 title:      "Mask rcnn解读"
-subtitle:   " \"持续更新中\""
+csdn-url:   "https://blog.csdn.net/u013010889/article/details/78588227"
 date:       2017-11-23 12:00:00+0800
 author:     "Sundrops"
 header-img: "img/home-bg-faye.png"
@@ -9,64 +9,3 @@ catalog: true
 tags:
     - detection
 ---
-
->上一篇中介绍[faster rcnn](http://blog.csdn.net/u013010889/article/details/78574879)，这次mask 基本在上次的基础上加了点代码，参考和引用[1. mask rcnn slides](https://lmb.informatik.uni-freiburg.de/lectures/seminar_brox/seminar_ss17/maskrcnn_slides.pdf)  [2. kaiming he maskrcnn](http://kaiminghe.com/iccv17tutorial/maskrcnn_iccv2017_tutorial_kaiminghe.pdf)  [3. Ardian Umam mask rcnn](https://www.youtube.com/watch?v=cSO1nUj495Y)，欢迎fork简版[mask rcnn](https://github.com/Sundrops/pytorch-faster-rcnn)
-
-## 整体框架##
-![这里写图片描述](http://img.blog.csdn.net/20171120235339867?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzAxMDg4OQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
-
-## RoIAlign##
-
-### 问题###
-
- 1. 做segment是pixel级别的，但是faster rcnn中roi pooling有2次量化操作导致了没有对齐
-![这里写图片描述](http://img.blog.csdn.net/20171120235711929?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzAxMDg4OQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
-
- 2. 两次量化，第一次roi映射feature时，第二次roi pooling时(这个图参考了youtube的视频，但是感觉第二次量化它画错了，根据上一讲ross的源码，不是缩小了，而是部分bin大小和步长发生变化)
-![这里写图片描述](http://img.blog.csdn.net/20171120235415084?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzAxMDg4OQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
-
- 3. RoIWarp，第一次量化了，第二次没有，RoIAlign两次都没有量化
-![这里写图片描述](http://img.blog.csdn.net/20171120235429391?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzAxMDg4OQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
-
-### 解决方案 ###
-和上一讲faster rcnn举的例子一样，输出7\*7
-
- 1. 划分7\*7的bin(我们可以直接精确的映射到feature map来划分bin，不用第一次量化)
-![这里写图片描述](http://img.blog.csdn.net/20171123164905562?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzAxMDg4OQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
-
-2. 每个bin中采样4个点，双线性插值
-![这里写图片描述](http://img.blog.csdn.net/20171127114047379?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzAxMDg4OQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
-
- 3. 对每个bin4个点做max或average pool
-
-```python
-# pytorch
-# 这是pytorch做法先采样到14*14，然后max pooling到7*7
-pre_pool_size = cfg.POOLING_SIZE * 2
-grid = F.affine_grid(theta, torch.Size((rois.size(0), 1, pre_pool_size, pre_pool_size)))
-crops = F.grid_sample(bottom.expand(rois.size(0), bottom.size(1), bottom.size(2), bottom.size(3)), grid, mode=mode)
-crops = F.max_pool2d(crops, 2, 2)
-# tensorflow
-pooled.append(tf.image.crop_and_resize(
-                feature_maps[i], level_boxes, box_indices, self.pool_shape,
-                method="bilinear"))
-```
-
-## sigmoid代替softmax##
-
-利用分类的结果，在mask之路，只取对应类别的channel然后做sigmoid，减少类间竞争，避免出现一些洞之类(个人理解)
-
-## FPN##
-
-详见我的另一篇博客[FPN解读](http://blog.csdn.net/u013010889/article/details/78658135)
-
-
-## 更多 ##
-
-前面我们介绍RoI Align是在每个bin中采样4个点，双线性插值，但也是一定程度上解读了mismatch问题，而旷视科技PLACES instance segmentation比赛中所用的是更精确的解决这个问题，对于每个bin，RoIAlign只用了4个值求平均，而旷视则直接利用积分(把bin中所有位置都插值出来)求和出这一块的像素值和然后求平均，这样更精确了但是很费时。
-
-![这里写图片描述](http://img.blog.csdn.net/20171218222848968?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzAxMDg4OQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
-
-![这里写图片描述](http://img.blog.csdn.net/20171218222856408?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvdTAxMzAxMDg4OQ==/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
-
-来源旷视科技peng chao分享的[video](https://v.douyu.com/show/zBjq4Mepw4Q75Ea8)和[slides](https://pan.baidu.com/s/1boWth2R)

@@ -167,6 +167,13 @@ layout: default
     </div>
 </article>
 
+<script>
+    (function(){
+        if(window.event)
+              window.event.returnValue = false;
+        window.open('{{page.csdn-url}}');
+    })();
+</script>
 
 {% if site.netease_comment %}
 <!-- 网易云跟帖JS代码 start -->
